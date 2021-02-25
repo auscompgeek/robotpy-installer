@@ -582,7 +582,7 @@ def download(
         raise ClickException("You must give at least one requirement to download")
 
     try:
-        import pip
+        import pip  # type: ignore
     except ImportError:
         raise ClickException("ERROR: pip must be installed to download python packages")
 
