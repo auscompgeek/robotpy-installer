@@ -2,7 +2,6 @@ import contextlib
 import inspect
 import logging
 import pathlib
-import platform
 import re
 import shutil
 import subprocess
@@ -58,11 +57,11 @@ class RobotpyInstaller:
 
         self.cfg_filename = cfgroot / ".installer_config"
 
-    def log_startup(self):
+    def log_startup(self) -> None:
         logger.info("RobotPy Installer %s", __version__)
         logger.info("-> caching files at %s", self.cache_root)
 
-    def get_opkg(self):
+    def get_opkg(self) -> OpkgRepo:
         opkg = OpkgRepo(self.opkg_cache, _OPKG_ARCH)
         for feed in _OPKG_FEEDS:
             opkg.add_feed(feed)
@@ -275,7 +274,7 @@ def opkg_download(
     installer: RobotpyInstaller,
     no_index: bool,
     requirements: typing.Tuple[str],
-    packages: typing.Tuple[str],
+    packages: typing.Sequence[str],
 ):
     """
     Downloads opkg package to local cache
@@ -325,7 +324,7 @@ def opkg_install(
     requirements: typing.Tuple[str],
     robot: str,
     ignore_image_version: bool,
-    packages: typing.Tuple[str],
+    packages: typing.Sequence[str],
 ):
     """
     Installs opkg package on RoboRIO
@@ -340,7 +339,7 @@ def opkg_install(
     #    to only install a package if it's not already installed
     opkg_files = []
     if requirements:
-        packages = [packages] + opkg.load_opkg_from_req(*requirements)
+        packages = list(packages) + opkg.load_opkg_from_req(*requirements)
 
     try:
         packages = opkg.resolve_pkg_deps(packages)
@@ -469,10 +468,10 @@ def opkg_uninstall(
     with installer.get_ssh(robot) as ssh:
         roborio_checks(ssh, ignore_image_version)
 
-        packages = " ".join(packages)
+        package_list = " ".join(packages)
 
         with catch_ssh_error("removing packages"):
-            ssh.exec_cmd(f"opkg remove {packages}", check=True, print_output=True)
+            ssh.exec_cmd(f"opkg remove {package_list}", check=True, print_output=True)
 
 
 #
